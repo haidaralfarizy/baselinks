@@ -1,58 +1,94 @@
-const markdownFiles = [];
-
 const dropzone = document.getElementById('dropzone');
+const folderInput = document.getElementById('folder-input');
 
 dropzone.addEventListener('dragover', (e) => {
     e.preventDefault();
-    dropzone.style.borderColor = "#007BFF";
+    dropzone.classList.add('dragover');
 });
 
 dropzone.addEventListener('dragleave', (e) => {
     e.preventDefault();
-    dropzone.style.borderColor = "#ccc";
+    dropzone.classList.remove('dragover');
 });
 
 dropzone.addEventListener('drop', async (e) => {
     e.preventDefault();
-    dropzone.style.borderColor = "#ccc";
+    dropzone.classList.remove('dragover');
     
-    markdownFiles.length = 0; 
+    const markdownFiles = [];
+    const imageFiles = [];
 
     const items = e.dataTransfer.items;
     
     for (let i = 0; i < items.length; i++) {
         const item = items[i].webkitGetAsEntry();
         if (item) {
-            await processEntry(item, ""); 
+            const result = await processEntry(item, "");
+            markdownFiles.push(...result.mdFiles);
+            imageFiles.push(...result.imgFiles);
         }
     }
 
-    console.log("Successfully extracted files:", markdownFiles);
-    
-    const compiledHTML = await parseMarkdownFiles(markdownFiles);
-    console.log("Successfully parsed HTML:", compiledHTML);
+    if (markdownFiles.length > 0) {
+        const compiledHTML = await parseMarkdownFiles(markdownFiles, imageFiles);
+        await buildAndDownloadZip(compiledHTML, imageFiles);
+    } else {
+        showFailure();
+    }
+});
 
-    await buildAndDownloadZip(compiledHTML);
-    console.log("Download triggered!");
+dropzone.addEventListener('click', () => {
+    folderInput.click();
+});
+
+folderInput.addEventListener('change', async (e) => {
+    const files = e.target.files;
+    if (files.length === 0) return;
+
+    const markdownFiles = [];
+    const imageFiles = [];
+
+    for (const file of files) {
+        const path = file.webkitRelativePath;
+        
+        if (path.endsWith('.md')) {
+            markdownFiles.push({ file, path });
+        } else if (path.match(/\.(png|jpe?g|gif|svg|webp)$/i)) {
+            imageFiles.push({ file, path });
+        }
+    }
+
+    if (markdownFiles.length > 0) {
+        const compiledHTML = await parseMarkdownFiles(markdownFiles, imageFiles);
+        await buildAndDownloadZip(compiledHTML, imageFiles);
+    } else { 
+        showFailure();
+    }
 });
 
 async function processEntry(entry, path) {
+    const results = { mdFiles: [], imgFiles: [] };
+    
     if (entry.isFile) {
-         if (entry.name.endsWith('.md')) {
+        if (entry.name.endsWith('.md')) {
             const file = await getFileFromEntry(entry);
-            markdownFiles.push({
-                file: file,
-                path: path + entry.name
-            });
+            results.mdFiles.push({ file, path: path + entry.name });
+        }
+        else if (entry.name.match(/\.(png|jpe?g|gif|svg|webp)$/i)) {
+            const file = await getFileFromEntry(entry);
+            results.imgFiles.push({ file, path: path + entry.name });
         }
     } else if (entry.isDirectory) {
         const dirReader = entry.createReader();
         const entries = await readAllDirectoryEntries(dirReader);
         
         for (const childEntry of entries) {
-            await processEntry(childEntry, path + entry.name + '/');
+            const childResults = await processEntry(childEntry, path + entry.name + '/');
+            results.mdFiles.push(...childResults.mdFiles);
+            results.imgFiles.push(...childResults.imgFiles);
         }
     }
+    return results;
 }
 
 function getFileFromEntry(fileEntry) {
@@ -77,4 +113,16 @@ function readAllDirectoryEntries(dirReader) {
         }
         readNextBatch();
     });
+}
+
+function closeOverlay() {
+    document.getElementById('success-overlay').classList.add('hidden');
+}
+
+function showFailure() {
+    document.getElementById('failure-overlay').classList.remove('hidden');
+}
+
+function closeFailureOverlay() {
+    document.getElementById('failure-overlay').classList.add('hidden');
 }

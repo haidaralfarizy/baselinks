@@ -3,17 +3,56 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Baselinks</title>
-    <style>
-        body { font-family: sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
-        #dropzone { width: 400px; height: 200px; border: 3px dashed #ccc; border-radius: 10px; display: flex; justify-content: center; align-items: center; text-align: center; color: #555; transition: 0.2s; }
-    </style>
+    <title>Baselinks | Simple Markdown Export</title>
+    <link rel="stylesheet" href="css/main.css">
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='450 350 1100 1100'%3E%3Cstyle%3Epath%7Bfill:%232c2825;%7D@media (prefers-color-scheme: dark)%7Bpath%7Bfill:%23fbf0d9;%7D%7D%3C/style%3E%3Cpath d='M496 549.2v53.1l46.3-.6c26.4-.4 55-1.3 66.7-2.2 39.4-3 49.7-3.5 80-3.5 74.4 0 128.7 8.8 164.1 26.5 24 12.1 45.1 33.4 55.5 56 12.7 27.9 15.7 66.3 7.9 100.7C903.4 837.5 858.9 880 796 894.4l-10.5 2.5h9c22.2.3 55.9 6 74.2 12.6 47.4 17 79.2 49.8 90.4 93 3.5 13.5 4.9 25.3 4.9 42.7 0 45-11.5 81.8-35.6 113.8-9.8 13-28.6 31-41 39.3-33.4 22.2-79.7 35.6-141.9 40.9-19.3 1.7-86.7 1.7-112.5 0-41.5-2.7-57.7-3.2-96.7-3.2H496v268h1008V496H496zm852 841.3v29.5H652v-59h696z'/%3E%3Cpath d='M637 649.6c-11.3.7-21.1 1.6-21.7 1.9-1 .3-1.3 23.8-1.3 113.4v112.9l2.3.6c1.2.3 21.1.6 44.2.6 54.9 0 64.7-1.4 84.6-11.6 26.3-13.5 43-40.9 49.1-80.4 1.8-11.6 1.8-52.2-.1-61.5-3.9-20.4-8.5-32-17.5-43.8-11.9-15.9-27.2-24.4-54.6-30.3-10.3-2.3-14.2-2.6-38-2.9-16.4-.2-34.3.2-47 1.1M625 939c-5.8.4-10.6.8-10.7.9-.2 0-.3 53.9-.3 119.6V1179l2.8 1.1c17.6 6.9 82.3 9.2 111.7 4 42.2-7.5 67.2-24.5 83.2-56.6 17.1-34.2 20.2-89 7.2-127.8-11-32.9-34.8-51.4-75.9-58.9-10.5-1.9-15.6-2.1-59.5-2.3-26.4-.2-52.7.1-58.5.5'/%3E%3C/svg%3E">
 </head>
 <body>
+    <main class="container">
+        <header>
+            <div class="logo" aria-label="Baselinks Logo"></div>
+            <p class="subtitle">Turn your Markdown folder into a minimal and beautiful website.</p>
+        </header>
 
-    <div id="dropzone">
-        <h2>Drop your Markdown folder here</h2>
+        <div id="dropzone" class="dropzone">
+            <div class="dropzone-content">
+                <span class="icon">↓</span>
+                <p>Drop your Markdown folder here</p>
+            </div>
+
+            <input type="file" id="folder-input" webkitdirectory directory multiple style="display: none;">
+        </div>
+
+        <footer>
+            <p>Privacy first. Everything is processed locally in your browser.</p>
+        </footer>
+    </main>
+
+    <div id="success-overlay" class="overlay hidden">
+        <div class="overlay-content">
+            <h2>Export successful!</h2>
+            <p>Your minimal static website has been bundled into a ZIP file and downloaded.</p>
+            <button onclick="closeOverlay()" class="close-btn">Done</button>
+        </div>
     </div>
+
+    <div id="failure-overlay" class="overlay hidden">
+        <div class="overlay-content" style="border-color: #a35b5b;">
+            <h2 style="color: #a35b5b;">Export failed</h2>
+            <p>No Markdown files were detected in the selected folder. Please ensure you are uploading a valid vault.</p>
+            <button onclick="closeFailureOverlay()" class="close-btn" style="background: #a35b5b;">Try Again</button>
+        </div>
+    </div>
+
+    <footer class="app-footer">
+        <div class="footer-content">
+            <a href="https://github.com/haidaralfarizy" rel="noopener noreferrer" target="_blank" class="watermark">Built by Haidar</a>
+            <span class="divider">|</span>
+            <a href="https://github.com/haidaralfarizy/baselinks" target="_blank" rel="noopener noreferrer" class="github-link">
+                Source on GitHub
+            </a>
+        </div>
+    </footer>
 
     <script src="lib/marked.min.js"></script>
     <script src="js/parser.js"></script>
