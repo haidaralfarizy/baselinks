@@ -9,15 +9,23 @@
 </head>
 <body>
     <main class="container">
+
+        <!-- Main view -->
+
         <header>
             <div class="logo" aria-label="Baselinks Logo"></div>
-            <p class="subtitle">Turn your Markdown folder into a minimal and beautiful website.</p>
+            <p class="subtitle">Drop your vault. Get a website.</p>
         </header>
+
+        <div class="mode-toggle">
+            <button id="btn-mode-export" class="toggle-btn active" onclick="setMode('export')">Export</button>
+            <button id="btn-mode-analyze" class="toggle-btn" onclick="setMode('analyze')">Analyze</button>
+        </div>
 
         <div id="dropzone" class="dropzone">
             <div class="dropzone-content">
                 <span class="icon">↓</span>
-                <p>Drop your Markdown folder here</p>
+                <p id="drop-text">Drop your Markdown folder here to export</p>
             </div>
 
             <input type="file" id="folder-input" webkitdirectory directory multiple style="display: none;">
@@ -26,7 +34,27 @@
         <footer>
             <p>Privacy first. Everything is processed locally in your browser.</p>
         </footer>
+
+        <footer class="app-footer">
+        <div class="footer-content">
+            <a href="https://github.com/haidaralfarizy" rel="noopener noreferrer" target="_blank" class="watermark">Built by Haidar</a>
+            <span class="divider">|</span>
+            <a href="https://github.com/haidaralfarizy/baselinks" target="_blank" rel="noopener noreferrer" class="github-link">
+                Source on GitHub
+            </a>
+        </div>
+    </footer>
     </main>
+
+    <!-- Overlay -->
+
+    <div id="loading-overlay" class="overlay hidden">
+        <div class="overlay-content loading-content">
+            <div class="spinner"></div>
+            <h2>Processing your vault...</h2>
+            <p id="loading-status">Parsing Markdown files</p>
+        </div>
+    </div>
 
     <div id="success-overlay" class="overlay hidden">
         <div class="overlay-content">
@@ -38,21 +66,23 @@
 
     <div id="failure-overlay" class="overlay hidden">
         <div class="overlay-content" style="border-color: #a35b5b;">
-            <h2 style="color: #a35b5b;">Export failed</h2>
+            <h2 style="color: #a35b5b;">Parsing failed</h2>
             <p>No Markdown files were detected in the selected folder. Please ensure you are uploading a valid vault.</p>
-            <button onclick="closeFailureOverlay()" class="close-btn" style="background: #a35b5b;">Try Again</button>
+            <button onclick="closeFailureOverlay()" class="close-btn" style="background: #a35b5b;">Try again</button>
         </div>
     </div>
 
-    <footer class="app-footer">
-        <div class="footer-content">
-            <a href="https://github.com/haidaralfarizy" rel="noopener noreferrer" target="_blank" class="watermark">Built by Haidar</a>
-            <span class="divider">|</span>
-            <a href="https://github.com/haidaralfarizy/baselinks" target="_blank" rel="noopener noreferrer" class="github-link">
-                Source on GitHub
-            </a>
+    <div id="analysis-overlay" class="overlay hidden">
+    <div class="overlay-content dashboard-content">
+        <h2>Vault analysis</h2>
+        
+        <div id="analysis-grid" class="dashboard-grid">
+            <p>Crunching the numbers...</p>
         </div>
-    </footer>
+        
+        <button onclick="closeAnalysis()" class="close-btn" style="margin-top: 2rem;">Close dashboard</button>
+    </div>
+</div>
 
     <script src="lib/marked.min.js"></script>
     <script src="js/parser.js"></script>

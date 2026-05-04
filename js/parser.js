@@ -18,9 +18,8 @@ async function parseMarkdownFiles(extractedFiles, imageFiles) {
         const currentExportPath = item.path.replace(/\.md$/i, '.html');
 
         rawText = rawText.replace(/^\s*---[\s\S]*?---\s*/, ''); // Remove YAML frontmatter
-        rawText = rawText.replace(/`{3,}[\s\S]*?`{3,}/g, '');
-        rawText = rawText.replace(/~{3,}[\s\S]*?~{3,}/g, '');
-        rawText = rawText.replace(/^> *\[!.*?\].*(?:\n>.*)*/gm, '');
+        rawText = rawText.replace(/`{3,}dataview[\s\S]*?`{3,}/g, ''); // Remove dataview code blocks
+        rawText = rawText.replace(/^> *\[!.*?\].*(?:\n>.*)*/gm, ''); // Remove callouts
         rawText = rawText.replace(/==(.*?)==/g, '<mark>$1</mark>'); // Process obsidian highlights
 
         rawText = rawText.replace(/!\[\[(.*?)\]\]/g, (match, content) => { // Image encoder
@@ -43,7 +42,10 @@ async function parseMarkdownFiles(extractedFiles, imageFiles) {
             }
 
             if (imageFile) {
-                const vaultRelativePath = imageFile.path.replace(new RegExp(`^${rootFolderName}/?`), '');
+                let vaultRelativePath = imageFile.path;
+                if (vaultRelativePath.startsWith(rootFolderName + '/')) {
+                    vaultRelativePath = vaultRelativePath.slice(rootFolderName.length + 1);
+                }
                 const currentDepth = currentExportPath.split('/').length - 1;
                 const relativePrefix = "../".repeat(currentDepth);
 
@@ -70,6 +72,34 @@ async function parseMarkdownFiles(extractedFiles, imageFiles) {
                 return `<span class="missing-link" title="Page not found: ${linkTarget}">${linkText}</span>`; 
             }
         });
+
+        rawText = rawText.replace(/!\[(.*?)\]\((.*?)\)/g, (match, altText, imagePath) => {
+            if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
+                return match; 
+            }
+
+            let imageName = decodeURIComponent(imagePath.split('/').pop());
+            
+            const currentDepth = currentExportPath.split('/').length - 1;
+            const relativePrefix = "../".repeat(currentDepth);
+            const safeImageName = encodeURIComponent(imageName);
+
+            return `![${altText}](${relativePrefix}${encodeURIComponent(rootFolderName)}/.images/${safeImageName})`;
+        });
+
+        rawText = rawText.replace(/\[(.*?)\]\((.*?)\)/g, (match, linkText, linkPath) => {
+            if (linkPath.startsWith('http://') || linkPath.startsWith('https://')) {
+                return match;
+            }
+
+            if (linkPath.toLowerCase().endsWith('.md')) {
+                const htmlPath = linkPath.replace(/\.md$/i, '.html');
+                return `[${linkText}](${htmlPath})`;
+            }
+
+            return match;
+        });
+
         const htmlContent = marked.parse(rawText, { breaks: true });
                 
         parsedData.push({

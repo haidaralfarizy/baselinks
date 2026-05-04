@@ -163,12 +163,18 @@ async function buildAndDownloadZip(parsedData, imageFiles) {
     zip.file(`${rootFolderName}/.js/search.js`, getSearchScript());
 
     for (const img of imageFiles) {
-        const vaultRelativePath = img.path.replace(new RegExp(`^${rootFolderName}/?`), '');
+        let vaultRelativePath = img.path;
+        if (vaultRelativePath.startsWith(rootFolderName + '/')) {
+            vaultRelativePath = vaultRelativePath.slice(rootFolderName.length + 1);
+        } else if (vaultRelativePath === rootFolderName) {
+            vaultRelativePath = '';
+        }
         zip.file(`${rootFolderName}/.images/${vaultRelativePath}`, img.file);
     }
 
     const zipContent = await zip.generateAsync({ type: "blob" });
     saveAs(zipContent, "baselinks-export.zip");
+    hideLoading();
     document.getElementById('success-overlay').classList.remove('hidden');
 }
 

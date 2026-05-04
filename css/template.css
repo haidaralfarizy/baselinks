@@ -6,6 +6,26 @@
     --accent-color: #d1c1a5;   
 }
 
+@font-face {
+    font-family: 'Merriweather';
+    src: url('fonts/Merriweather-VariableFont_opsz,wdth,wght.ttf') format('truetype');
+    font-weight: 300 900;
+}
+
+::-webkit-scrollbar {
+    width: 4px;
+}
+::-webkit-scrollbar-track {
+    background: transparent; 
+}
+::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.2); 
+    border-radius: 10px;
+}
+::-webkit-scrollbar-thumb:hover {
+    background: rgba(0, 0, 0, 0.4); 
+}
+
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
 body {
@@ -94,7 +114,7 @@ body {
     left: 1.5rem;
     right: 1.5rem;
     background: var(--bg-color);
-    border: 1px solid var(--text-primary);
+    border: 1px solid var(--text-color);
     max-height: 400px;
     overflow-y: auto;
     z-index: 100;
@@ -109,7 +129,7 @@ body {
     display: block;
     padding: 0.8rem 1rem;
     text-decoration: none;
-    color: var(--text-primary);
+    color: var(--text-color);
     border-bottom: 1px solid rgba(0,0,0,0.05);
     transition: background 0.2s, color 0.2s;
 }
