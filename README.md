@@ -1,6 +1,6 @@
 # Baselinks
 
-![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg) ![Vanilla JS](https://img.shields.io/badge/Vanilla_JS-F7DF1E?style="flat&logo=javascript&logoColor=black) ![Hosted with GitHub Pages](https://img.shields.io/badge/Hosted_with-GitHub_Pages-121013?style="flat&logo=github&logoColor=white)
+![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg) ![Vanilla JS](https://img.shields.io/badge/Vanilla_JS-F7DF1E?style=flat&logo=javascript&logoColor=black) ![Hosted with GitHub Pages](https://img.shields.io/badge/Hosted_with-GitHub_Pages-121013?style=flat&logo=github&logoColor=white)
 
 **Baselinks** is a minimal, privacy-first static site generator that runs entirely in your browser. It turns your folder of Markdown files (like an Obsidian vault) into a beautiful, navigable static website bundled as a ZIP file. It can also analyze your vault's health by listing different types of data.
 
@@ -51,6 +51,7 @@ Baselinks is built with HTML/CSS/JS and uses the following libraries:
 - [JSZip](https://stuk.github.io/jszip/) for bundling the site.
 - [FileSaver.js](https://github.com/eligrey/FileSaver.js/) for triggering the download.
 - [Fuse.js](https://github.com/krisk/fuse) for fuzzy search.
+- [force-graph](https://github.com/vasturiano/force-graph) for responsive graphing.
 
 ### Local Development / Contributing
 To run Baselinks locally, simply clone the repo and run `index.html` in your browser — no build setup required.

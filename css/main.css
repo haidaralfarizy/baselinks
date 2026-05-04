@@ -156,7 +156,7 @@ header {
     font-size: 1rem;
 }
 
-footer {
+.privacy-text {
     font-size: 0.8rem;
     color: var(--text-secondary);
     opacity: 0.6;
@@ -207,8 +207,9 @@ footer {
 }
 
 .overlay.hidden {
-    display: none !important;
+    visibility: hidden;
     opacity: 0;
+    pointer-events: none;
 }
 
 .overlay-content {

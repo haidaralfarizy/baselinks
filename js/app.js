@@ -163,9 +163,21 @@ function closeOverlay() {
     document.getElementById('success-overlay').classList.add('hidden');
 }
 
-function showFailure() {
+function showFailure(customTitle, customMessage) {
     hideLoading();
-    document.getElementById('failure-overlay').classList.remove('hidden');
+    const failureOverlay = document.getElementById('failure-overlay');
+    
+    if (customTitle && customMessage) {
+        failureOverlay.querySelector('h2').textContent = customTitle;
+        failureOverlay.querySelector('p').textContent = customMessage;
+        failureOverlay.querySelector('.close-btn').textContent = 'Try again';
+    } else {
+        failureOverlay.querySelector('h2').textContent = 'Parsing failed';
+        failureOverlay.querySelector('p').textContent = 'No Markdown files were detected in the selected folder. Please ensure you are uploading a valid vault.';
+        failureOverlay.querySelector('.close-btn').textContent = 'Try again';
+    }
+    
+    failureOverlay.classList.remove('hidden');
 }
 
 function closeFailureOverlay() {
@@ -176,12 +188,67 @@ function closeAnalysis() {
     document.getElementById('analysis-overlay').classList.add('hidden');
 }
 
+function renderGraph(nodesData, linksData) {
+    const container = document.getElementById('vault-graph');
+    if (!container) return;
+
+    container.innerHTML = '';
+
+    const Graph = ForceGraph()(container)
+        .graphData({ nodes: nodesData, links: linksData })
+        .nodeLabel('name')
+        .nodeRelSize(4)
+        .nodeVal(node => node.val)
+        .nodeColor(node => {
+            const opacity = Math.min(1, 0.2 + (node.val * 0.08));
+            return `rgba(59, 54, 47, ${opacity})`;
+        })
+        .linkColor(() => 'rgba(59, 54, 47, 0.15)')
+        .backgroundColor('transparent')
+        .width(container.clientWidth)
+        .height(container.clientHeight)
+        .d3VelocityDecay(0.3)
+        .nodeCanvasObjectMode(() => 'after')
+        .nodeCanvasObject((node, ctx, globalScale) => {
+            if (globalScale >= 2) {
+                const label = node.name;
+                const fontSize = 12 / globalScale;
+                ctx.font = `${fontSize}px "Merriweather", serif`;
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillStyle = 'rgba(59, 54, 47, 0.9)';
+                
+                const nodeRadius = Math.sqrt(node.val) * 4;
+                ctx.fillText(label, node.x, node.y + nodeRadius + (fontSize / 1.5));
+            }
+        });
+
+        Graph.d3Force('charge').strength(-150);
+        Graph.d3Force('link').distance(40);
+
+        container.addEventListener('wheel', (event) => {
+        event.preventDefault();
+        event.stopImmediatePropagation();
+
+        const currentZoom = Graph.zoom();
+        const targetZoom = event.deltaY < 0 ? currentZoom * 1.5 : currentZoom / 1.5;
+        
+        Graph.zoom(targetZoom, 250);
+    }, { capture: true, passive: false });
+
+    window.addEventListener('resize', () => {
+        Graph.width(container.clientWidth).height(container.clientHeight);
+    });
+}
+
 async function runVaultAnalysis(parsedData, markdownFiles) {
     const grid = document.getElementById('analysis-grid');
     
     let totalWords = 0;
     const noteStats = [];
     const graph = {}; 
+    const nodesData = []; 
+    const linksData = []; 
     
     for (const md of markdownFiles) {
         const title = md.file.name.replace(/\.md$/i, '');
@@ -233,6 +300,7 @@ async function runVaultAnalysis(parsedData, markdownFiles) {
 
             if (graph[targetKey]) {
                 graph[targetKey].incoming++;
+                linksData.push({ source: sourceTitle, target: graph[targetKey].title });
             } else {
                 brokenLinks.push({ source: sourceTitle, missing: targetTitle });
             }
@@ -253,6 +321,12 @@ async function runVaultAnalysis(parsedData, markdownFiles) {
         }
         mostLinked.push({ title: node.title, incoming: node.incoming });
         mostOutgoing.push({ title: node.title, outgoing: node.outgoing }); 
+        
+        nodesData.push({
+            id: node.title,
+            name: node.title,
+            val: (node.incoming + node.outgoing) * 0.5 + 1 
+        });
     }
 
     noteStats.sort((a, b) => b.readingTime - a.readingTime);
@@ -283,6 +357,11 @@ async function runVaultAnalysis(parsedData, markdownFiles) {
         : '<li style="color: var(--text-primary); opacity: 0.6;">No outgoing links found.</li>';
 
     grid.innerHTML = `
+        <div style="grid-column: 1 / -1; border: 1px solid var(--text-primary); padding: 0; position: relative;">
+            <h3 style="position: absolute; top: 1.5rem; left: 1.5rem; margin: 0; color: var(--text-primary); opacity: 0.6; font-size: 0.9rem; text-transform: uppercase; z-index: 10; pointer-events: none;">Knowledge Graph</h3>
+            <div id="vault-graph" style="height: 450px; width: 100%; cursor: grab;"></div>
+        </div>
+
         <div style="border: 1px solid var(--text-primary); padding: 1.5rem;">
             <h3 style="margin-top: 0; color: var(--text-primary); opacity: 0.6; font-size: 0.9rem; text-transform: uppercase;">Total Count</h3>
             <p style="font-size: 2.5rem; font-weight: bold; margin: 0;">${totalNotes} <span style="font-size: 1rem; font-weight: normal;">notes</span></p>
@@ -301,7 +380,7 @@ async function runVaultAnalysis(parsedData, markdownFiles) {
             <ul style="padding-left: 1.2rem; padding-right: 0.5rem; margin: 0; overflow-y: auto; flex-grow: 1;">${hubsHTML}</ul>
         </div>
         <div style="border: 1px solid var(--text-primary); padding: 1.5rem; grid-column: span 1; display: flex; flex-direction: column; max-height: 350px;">
-            <h3 style="margin-top: 0; margin-bottom: 1rem; color: var(--text-primary); opacity: 0.6; font-size: 0.9rem; text-transform: uppercase;">Broken Links</h3>
+            <h3 style="margin-top: 0; margin-bottom: 1rem; color: var(--text-primary); opacity: 0.6; font-size: 0.9rem; text-transform: uppercase;">Unresolved Links</h3>
             <ul style="padding-left: 1.2rem; padding-right: 0.5rem; margin: 0; overflow-y: auto; flex-grow: 1;">${brokenHTML}</ul>
         </div>
         <div style="border: 1px solid var(--text-primary); padding: 1.5rem; grid-column: span 1; display: flex; flex-direction: column; max-height: 350px;">
@@ -327,4 +406,8 @@ async function runVaultAnalysis(parsedData, markdownFiles) {
             </div>
         </div>
     `;
+
+    setTimeout(() => {
+        renderGraph(nodesData, linksData);
+    }, 50);
 }

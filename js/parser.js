@@ -75,16 +75,36 @@ async function parseMarkdownFiles(extractedFiles, imageFiles) {
 
         rawText = rawText.replace(/!\[(.*?)\]\((.*?)\)/g, (match, altText, imagePath) => {
             if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
-                return match; 
+                return match;
             }
 
-            let imageName = decodeURIComponent(imagePath.split('/').pop());
+            const mdDir = item.path.substring(0, item.path.lastIndexOf('/'));
+            let decodedPath = decodeURIComponent(imagePath);
             
-            const currentDepth = currentExportPath.split('/').length - 1;
-            const relativePrefix = "../".repeat(currentDepth);
-            const safeImageName = encodeURIComponent(imageName);
+            let imageFile = imageFiles.find(img => {
+                const imgDir = img.path.substring(0, img.path.lastIndexOf('/'));
+                if (decodedPath.includes('/')) {
+                    return img.path.toLowerCase() === (mdDir + '/' + decodedPath).toLowerCase();
+                }
+                return imgDir.toLowerCase() === mdDir.toLowerCase() && img.path.substring(img.path.lastIndexOf('/') + 1).toLowerCase() === decodedPath.toLowerCase();
+            });
 
-            return `![${altText}](${relativePrefix}${encodeURIComponent(rootFolderName)}/.images/${safeImageName})`;
+            if (!imageFile && !decodedPath.includes('/')) {
+                imageFile = imageFiles.find(img => img.path.substring(img.path.lastIndexOf('/') + 1).toLowerCase() === decodedPath.toLowerCase());
+            }
+
+            if (imageFile) {
+                let vaultRelativePath = imageFile.path;
+                if (vaultRelativePath.startsWith(rootFolderName + '/')) {
+                    vaultRelativePath = vaultRelativePath.slice(rootFolderName.length + 1);
+                }
+                const currentDepth = currentExportPath.split('/').length - 1;
+                const relativePrefix = "../".repeat(currentDepth);
+
+                return `![${altText}](${relativePrefix}${encodeURIComponent(rootFolderName)}/.images/${vaultRelativePath.split('/').map(p => encodeURIComponent(p)).join('/')})`;
+            }
+
+            return match;
         });
 
         rawText = rawText.replace(/\[(.*?)\]\((.*?)\)/g, (match, linkText, linkPath) => {

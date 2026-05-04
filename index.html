@@ -31,9 +31,9 @@
             <input type="file" id="folder-input" webkitdirectory directory multiple style="display: none;">
         </div>
 
-        <footer>
-            <p>Privacy first. Everything is processed locally in your browser.</p>
-        </footer>
+        <p class="privacy-text">
+            Privacy first. Everything is processed locally in your browser.
+        </p>
 
         <footer class="app-footer">
         <div class="footer-content">
@@ -77,7 +77,6 @@
         <h2>Vault analysis</h2>
         
         <div id="analysis-grid" class="dashboard-grid">
-            <p>Crunching the numbers...</p>
         </div>
         
         <button onclick="closeAnalysis()" class="close-btn" style="margin-top: 2rem;">Close dashboard</button>
@@ -89,6 +88,7 @@
     <script src="lib/jszip.min.js"></script>
     <script src="lib/FileSaver.min.js"></script>
     <script src="js/builder.js"></script>
+    <script src="lib/force-graph.min.js"></script>
     <script src="js/app.js"></script>
 </body>
 </html>
